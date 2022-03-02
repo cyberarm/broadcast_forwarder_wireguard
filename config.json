@@ -1,0 +1,12 @@
+{
+    "service_ports": [
+        24298
+    ],
+    "repeat_to_interfaces": [
+        {
+            "interface":"192.168.195.0",
+            "start":2,
+            "end":5
+        }
+    ]
+}
