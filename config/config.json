@@ -1,6 +1,6 @@
 {
-    "local_real_interface":"192.168.1.117", // # Address where game is expecting to receive broadcasts
-    "local_vpn_interface":"192.168.195.2",  // # Address where remote broadcasts are sent too
+    "local_lan_interface":"192.168.1.117", // # Address where game is expecting to receive broadcasts
+    "local_vpn_interface":"192.168.195.2", // # Address where remote broadcasts are sent too
     "service_ports": [ // # Array of ports to monitor for broadcasts
         24298
     ],
