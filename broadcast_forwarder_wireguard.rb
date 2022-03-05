@@ -14,6 +14,8 @@ class BroadcastForwarderWireGuard
     @running = true
     @sockets = []
 
+    @repeater_sockets = [] # Listens for remote traffic and resends on real interfaces
+
     @forwarded_broadcasts = 0
     @last_notified_forwarded_broadcasts = @forwarded_broadcasts
     @last_notified_forwarded_broadcasts_at = Process.clock_gettime(Process::CLOCK_MONOTONIC)
@@ -26,14 +28,17 @@ class BroadcastForwarderWireGuard
       end
     end
 
+    log "Will deliver remote broadcasts to real interface: #{@config["local_real_interface"]}, sent to vpn interface: #{@config["local_vpn_interface"]}"
+
     log "Setting up sockets..."
     setup_sockets
-    log "Listening for broadcasts on ports: #{@config["service_ports"].join(", ")}"
+    log "Listening for broadcasts..."
     monitor_broadcasts
   end
 
   def setup_sockets
     @config["service_ports"].each do |port|
+      log "   Subscribing to broadcasts on port #{port}..."
       socket = UDPSocket.new
 
       socket.setsockopt(Socket::SOL_SOCKET, Socket::SO_BROADCAST, true)
@@ -41,6 +46,16 @@ class BroadcastForwarderWireGuard
 
       socket.bind("", port)
 
+      @sockets << socket
+
+      # Remote to local capture socket; Capture inbound broadcasts sent from VPN peers
+      socket = UDPSocket.new
+      socket.setsockopt(Socket::SOL_SOCKET, Socket::SO_BROADCAST, true)
+      socket.setsockopt(Socket::SOL_SOCKET, Socket::SO_REUSEADDR, true)
+
+      socket.bind(@config["local_vpn_interface"], port)
+
+      @repeater_sockets << socket
       @sockets << socket
     end
   end
@@ -52,9 +67,26 @@ class BroadcastForwarderWireGuard
       next unless ready
 
       ready[0].each do |socket|
-        forward_broadcast_to_interfaces(socket.recvfrom(4096), socket)
+        if @repeater_sockets.any?(socket)
+          local_broadcast_to_interface(socket.recvfrom(4096), socket)
+        else
+          forward_broadcast_to_interfaces(socket.recvfrom(4096), socket)
+        end
       end
     end
+  end
+
+  def local_broadcast_to_interface(message, socket)
+    data, addr = message
+
+    log "Repeating remote message from #{addr[2]}:#{addr[1]} of length: #{data.length}"
+
+    # Remote to local delivery socket; tries to deliver remote broadcast to local game client
+    socket_exist = @sock
+    @sock ||= UDPSocket.new
+    @sock.bind("local_real_interface", 0) unless socket_exist
+
+    @sock.send(data, 0, @config["local_real_interface"], addr[1])
   end
 
   def forward_broadcast_to_interfaces(message, socket)
@@ -75,13 +107,16 @@ class BroadcastForwarderWireGuard
     end
 
     # Remove self
-    local_ip_addresses.each { |address| peers.delete(address) }
+    my_addresses = []
+    local_ip_addresses.each { |address| my_addresses << peers.delete(address) }
 
     data, addr = message
 
     peers.each do |peer|
       socket.send(data, 0, peer, addr[1])
     end
+
+    # pp my_addresses
 
     @forwarded_broadcasts += 1
 
