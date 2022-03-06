@@ -2,8 +2,8 @@ require "releasy"
 require "bundler/setup" # Releasy requires that your application uses bundler.
 
 Releasy::Project.new do
-  name "BroadcastForwarderWireGuard"
-  version "0.1.0"
+  name "Broadcast Forwarder WireGuard"
+  version "0.2.0"
 
   executable "broadcast_forwarder_wireguard.rb"
   files ["lib/**/*", "config/*"]
