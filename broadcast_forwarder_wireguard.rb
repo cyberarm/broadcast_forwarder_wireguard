@@ -9,6 +9,8 @@ rescue LoadError
   require "cyberarm_engine"
 end
 
+require "bindata"
+
 class BroadcastForwarderWireGuard
   ROOT_PATH = File.expand_path("..", __FILE__)
 end
