@@ -3,12 +3,7 @@ unless RUBY_ENGINE == "mruby"
   require "json"
 end
 
-begin
-  require_relative "../cyberarm_engine/lib/cyberarm_engine"
-rescue LoadError
-  require "cyberarm_engine"
-end
-
+require "cyberarm_engine"
 require "optparse"
 
 class BroadcastForwarderWireGuard

@@ -24,7 +24,7 @@ class BroadcastForwarderWireGuard
       @ring_size = 50
 
       at_exit do
-        log "Shutting down... Forwarded a total of #{@forwarded_broadcasts} broadcasts."
+        log "Shutting down... Forwarded a total of #{@broadcasts_forwarded} broadcasts."
         @sockets.each do |socket|
           socket&.close
         end
