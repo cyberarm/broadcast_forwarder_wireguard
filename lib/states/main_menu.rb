@@ -72,7 +72,7 @@ class BroadcastForwarderWireGuard
 
         # Assume 192.168.0 and 192.168.1 are LAN interfaces
         @lan_interface.value = @local_ip_addresses.find { |ip| ip.start_with?("192.168.0.") || ip.start_with?("192.168.1.") }
-        @vpn_interface.value = @local_ip_addresses.find { |ip| !ip.start_with?("192.168.0.") || !ip.start_with?("192.168.1.") }
+        @vpn_interface.value = @local_ip_addresses.find { |ip| !ip.start_with?("192.168.0.") && !ip.start_with?("192.168.1.") }
       end
 
       def interfaces_valid?
