@@ -56,7 +56,7 @@ class BroadcastForwarderWireGuard
         end
 
         @config = JSON.parse(File.read("#{ROOT_PATH}/config/config.json"))
-        @local_ip_addresses = refresh_ip_address_list(true)
+        refresh_ip_address_list(true)
       end
 
       def refresh_ip_address_list(initial = false)
@@ -70,8 +70,9 @@ class BroadcastForwarderWireGuard
 
         return unless @local_ip_addresses.size > 1
 
-        @lan_interface.value = @config["local_lan_interface"] if @local_ip_addresses.include?(@config["local_lan_interface"])
-        @vpn_interface.value = @config["local_vpn_interface"] if @local_ip_addresses.include?(@config["local_vpn_interface"])
+        # Assume 192.168.0 and 192.168.1 are LAN interfaces
+        @lan_interface.value = @local_ip_addresses.find { |ip| ip.start_with?("192.168.0.") || ip.start_with?("192.168.1.") }
+        @vpn_interface.value = @local_ip_addresses.find { |ip| !ip.start_with?("192.168.0.") || !ip.start_with?("192.168.1.") }
       end
 
       def interfaces_valid?

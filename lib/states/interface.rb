@@ -30,14 +30,19 @@ class BroadcastForwarderWireGuard
               end
 
               button "<b>Shutdown</b>", width: 0.35, tip: "Stop forwarder and close" do
-                @proto_proxy&.stop!
+                @proto_repeater&.stop!
                 window.close
               end
             end
           end
         end
 
-        @proto_proxy = ProtoProxy.new(gui: self)
+        # @proto_proxy = ProtoProxy.new(gui: self)
+        @proto_repeater = ProtoRepeater.new(
+          lan_interface: @options[:real_lan_interface],
+          vpn_interface: @options[:real_vpn_interface],
+          gui: self
+        )
         @last_transfer_refreshed_at = 0
       end
 
@@ -47,8 +52,8 @@ class BroadcastForwarderWireGuard
         if Gosu.milliseconds - @last_transfer_refreshed_at >= 100.0
           @last_transfer_refreshed_at = Gosu.milliseconds
 
-          @total_rx.value = "Rx: #{format_size(@proto_proxy.total_rx)}"
-          @total_tx.value = "Tx: #{format_size(@proto_proxy.total_tx)}"
+          @total_rx.value = "Rx: #{format_size(@proto_repeater.total_rx)}"
+          @total_tx.value = "Tx: #{format_size(@proto_repeater.total_tx)}"
 
           # Discard old messages
           while (@log_container.children.count > 25)
