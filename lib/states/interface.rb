@@ -1,6 +1,8 @@
 class BroadcastForwarderWireGuard
   class States
     class Interface < CyberarmEngine::GuiState
+      attr_reader :log_container
+
       def setup
         theme(BroadcastForwarderWireGuard::THEME)
 
@@ -13,8 +15,9 @@ class BroadcastForwarderWireGuard
 
           stack(width: 1.0, height: 1.0 - 0.30) do
             flow(width: 1.0, height: 0.15, margin_left: 8) do
-              @total_rx = para "Rx: #{format_size(1024)}", width: 0.5
-              @total_tx = para "Tx: #{format_size(10240)}", width: 0.5
+              @total_rx = para "Rx: #{format_size(1024)}", width: 0.4
+              @total_tx = para "Tx: #{format_size(10240)}", width: 0.4
+              @total_bc = para "Bc: 0", width: 0.2
             end
 
             @log_container = stack(width: 1.0, height: 0.78, padding: 2, scroll: true, margin_top: 4, border_thickness: 1, border_color: 0x88_000000) do
@@ -54,6 +57,7 @@ class BroadcastForwarderWireGuard
 
           @total_rx.value = "Rx: #{format_size(@proto_repeater.total_rx)}"
           @total_tx.value = "Tx: #{format_size(@proto_repeater.total_tx)}"
+          @total_bc.value = "Bc: #{@proto_repeater.broadcasts_forwarded}"
 
           # Discard old messages
           while (@log_container.children.count > 25)
